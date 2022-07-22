@@ -244,7 +244,7 @@ fi
 
 debug_step="wget $radiantTgz download"; progress_banner
 if [[ ! -f "$radiantTgz" ]]; then
-	wget "${radiantGit}${radiantTgz}" -q --show-progress
+	wget "${radiantGit}" -q --show-progress
 else
 	echo "$radiantTgz already downloaded"
 fi
