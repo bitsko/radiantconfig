@@ -210,17 +210,17 @@ debug_step="curl-ing the release version"; minor_progress
 radiantDir="$HOME/.radiant"
 radiantBin="$radiantDir/bin"
 radiantCnf="$radiantDir/radiant.conf"
-if [[ -n $(command -v jq) ]]; then
-	radiantVer="$(curl -s https://api.github.com/repos/radiantworks/radiant/releases/latest | jq .tag_name | sed 's/"//g' )"
+if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
+	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
 else 
 	echo "*** jq not installed, dependencies installation failed"
 	exit 1
 fi
 debug_location
-radiantTgz="$radiantVer".tar.gz
-radiantGit="https://github.com/radiantworks/radiant/archive/refs/tags/$radiantTgz"
-radiantNum="${radiantVer//v/}"
-radiantSrc="$PWD/radiant-$radiantNum"
+radiantTgz="v${radiantVer}".tar.gz
+radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
+radiantSrc="$PWD/radiant-node-$radiantVer"
+radiantBld="${radiantSrc}/build"
 frshDir=0
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
@@ -244,7 +244,7 @@ fi
 
 debug_step="wget $radiantTgz download"; progress_banner
 if [[ ! -f "$radiantTgz" ]]; then
-	wget "$radiantGit" -q --show-progress
+	wget "${radiantGit}${radiantTgz}" -q --show-progress
 else
 	echo "$radiantTgz already downloaded"
 fi
@@ -266,53 +266,10 @@ debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
-# compile  BerkeleyDB.5.3
-if [[ "$compile_bdb53" == 1 ]]; then
-	bdb53mjver="5"
-	bdb53vrsnm="${bdb53mjver}.3.28"
-	bdb53dldir="db-${bdb53vrsnm}"
-	bdb53targz="${bdb53dldir}.tar.gz"
-	debug_step="compiling BerkeleyDB.5.3"; progress_banner; debug_step="wget $bdb53targz"; minor_progress
-	wget https://github.com/berkeleydb/libdb/releases/download/v5.3.28/"$bdb53targz"
-	debug_location; debug_step="untar $bdb53targz"; minor_progress
-	if [[ -n $(command -v pv) ]]; then
-		pv "$bdb53targz" | tar -xzf
-	else
-		tar -zxvf "$bdb53targz"
-	fi
-	debug_location; debug_step="configure ${bdb53dldir}"; minor_progress
-	cd "${bdb53dldir}" || echo "unable to cd to $PWD/${bdb53dldir}"
-	debug_step="applying atomic patch"; minor_progress
-	sed -i 's/__atomic_compare_exchange((p), (o), (n))/__atomic_compare_exchange_db((p), (o), (n))/g' src/dbinc/atomic.h; debug_location
-	sed -i 's/static inline int __atomic_compare_exchange/static inline int __atomic_compare_exchange_db/g' src/dbinc/atomic.h; debug_location
-	cd build_unix || echo "unable to cd to $PWD/build_unix"
-	../dist/configure --enable-cxx --prefix=/usr/local --disable-shared --with-pic CC=egcc CXX=eg++ CPP=ecpp
-	debug_location; debug_step="make db${bdb53mjver}"; minor_progress
-	make
-	debug_location; debug_step="make install db${bdb53mjver}"; minor_progress
-	make install
-	debug_location; debug_step="bdb${bdb53mjver} compiled"; progress_banner
-	cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
-	unset bdb53mjver bdb53vrsnm bdb53dldir bdb53targz
-fi
-# compile boost
-if [[ "$compile_boost" == 1 ]]; then
-	debug_step="compiling boost"; minor_progress
-	cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
-	git clone --recursive https://github.com/boostorg/boost.git
-	cd boost
-	git checkout develop
-	echo 'using gcc : : eg++ : <cxxflags>"-fvisibility=hidden -fPIC" <linkflags>"" <archiver>"ar" <striper>"strip"  <ranlib>"ranlib" <rc>"" : ;' > user-config.jam
-	config_opts="runtime-link=shared threadapi=pthread threading=multi link=static variant=release --layout=tagged --build-type=complete --user-config=user-config.jam -sNO_BZIP2=1"
-	./bootstrap.sh --without-icu --with-libraries=chrono,filesystem,program_options,system,thread,test
-	./b2 headers
-	cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
-fi
-
 if [[ -f "$radiantSrc/log" ]]; then
 	mv "$radiantSrc/log $radiantSrc/log$EPOCHSECONDS"
 fi
-touch "$radiantSrc/log"
+# touch "$radiantSrc/log"
 
 debug_step="running autogen.sh"; progress_banner
 if [[ "$radiant_OS" == OpenBSD ]]; then
@@ -323,66 +280,31 @@ else
 	./autogen.sh >>$radiantSrc/log 2>&1
 fi
 debug_location
-tail -f log & 
-tail_pid=$!
+# tail -f log & 
+# tail_pid=$!
 
-debug_step="running ./configure"; progress_banner
-if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]] && \
-	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-	CONFIG_SITE=$PWD/depends/arm-linux-gnueabihf/share/config.site \
-	./configure --without-gui --enable-reduce-exports LDFLAGS=-static-libstdc++ >>$radiantSrc/log 2>&1
-	debug_location
-elif [[ "${x86cpu_array[*]}" =~ "$cpu_type" ]] && \
-	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-	./configure --without-gui >>$radiantSrc/log 2>&1
-	debug_location
-elif [[ "$radiant_OS" == fedora ]]; then 
-	./configure --without-gui >>$radiantSrc/log 2>&1
-	debug_location
-elif [[ "$radiant_OS" == freebsd ]]; then
-	./configure --without-gui --disable-dependency-tracking \
-	--disable-hardening --with-incompatible-bdb \
-	MAKE=gmake CXX=clang++ CC=clang \
-	CFLAGS="-I/usr/local/include -I/usr/include/machine" \
-	CXXFLAGS="-I/usr/local/include -I/usr/local/include/db5" \
-	LDFLAGS="-L/usr/local/lib -L/usr/local/lib/db5" \
-	BDB_LIBS="-ldb_cxx-5" \
-        BDB_CFLAGS="-I/usr/local/include/db5" >>$radiantSrc/log 2>&1
-	debug_location
-elif [[ "$radiant_OS" == OpenBSD ]]; then 
-	./configure \
-	--without-gui \
-	--disable-dependency-tracking \
-	--disable-wallet \
-	MAKE=gmake >>$radiantSrc/log 2>&1
-	debug_location
-	wallet_disabled=1
-elif [[ "$radiant_OS" == NetBSD ]]; then
-	export BOOST_ROOT="/usr/pkg/include/boost"
-	./configure --without-gui \
-	--disable-wallet \
-	MAKE=gmake >>$radiantSrc/log 2>&1
-	debug_location
-	wallet_disabled=1
-elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	./configure --without-gui \
-	--disable-wallet >>$radiantSrc/log 2>&1
-	debug_location
-	wallet_disabled=1
-elif [[ "$radiant_OS" == amzn ]]; then
-	./configure --without-gui \
-	--disable-wallet >>$radiantSrc/log 2>&1
-	debug_location
-	wallet_disabled=1
-fi
-debug_step="make/gmake package"; progress_banner
-if [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-	gmake >>$radiantSrc/log 2>&1
-else
-	radiantPrc=$(echo "$(nproc) - 1" | bc)
-	if [[ "$radiantPrc" == 0 ]]; then radiantPrc="1"; fi
-	make -j "$radiantPrc" >>$radiantSrc/log 2>&1
-fi
+# debug_step="running ./configure"; progress_banner
+# if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]] && \
+#	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
+# elif [[ "${x86cpu_array[*]}" =~ "$cpu_type" ]] && \
+#	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
+# elif [[ "$radiant_OS" == fedora ]]; then 
+# elif [[ "$radiant_OS" == freebsd ]]; then
+#
+# elif [[ "$radiant_OS" == OpenBSD ]]; then 
+#
+# elif [[ "$radiant_OS" == NetBSD ]]; then
+#
+# elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
+#
+# elif [[ "$radiant_OS" == amzn ]]; then
+# fi
+
+mkdir -p "$radiantBld"
+cd "$radiantBld" || echo "cant cd to $radiantBld"
+debug_step="ninja package"; progress_banner
+cmake -GNinja .. -DBUILD_RADIANT_QT=OFF
+ninja
 debug_location
 
 debug_step="copying and stripping binaries into $radiantBin"; minor_progress
@@ -397,13 +319,11 @@ if [[ ! -f "$radiantCnf" ]]; then
 	radiantUsr="$(xxd -l 16 -p /dev/urandom)"
 	radiantRpc="$(xxd -l 20 -p /dev/urandom)"
 	echo \
-	"port=8666"$'\n'\
-	"rpcport=8665"$'\n'\
+	"port=7332"$'\n'\
+	"rpcport=7333"$'\n'\
 	"rpcuser=$radiantUsr"$'\n'\
 	"rpcpassword=$radiantRpc"$'\n'\
-	"gen=1"$'\n'\
 	"txindex=1"$'\n'\
-	"maxmempool=1600" \
 	| tr -d ' ' > "$radiantCnf"
 	debug_location
 	cat "$radiantCnf"
@@ -430,8 +350,8 @@ echo $'\n'"to use:"
 echo "$radiantBin/radiantd --daemon"
 echo "tail -f $radiantDir/debug.log"
 echo "$radiantBin/radiant-cli --help"
-if ps -p $tail_pid > /dev/null; then
-	kill "$tail_pid"
-fi
+# if ps -p $tail_pid > /dev/null; then
+#	kill "$tail_pid"
+# fi
 script_exit
 unset -f script_exit
