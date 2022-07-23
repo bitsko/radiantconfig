@@ -11,7 +11,7 @@ debug_location(){
 		if ps -p $tail_pid > /dev/null; then
 			kill "$tail_pid"
 		fi
-		if [[ -s "$isntallLog" ]]; then
+		if [[ -s "$installLog" ]]; then
 			echo $'\n'"log available at $installLog"$'\n'
 		fi
 		script_exit
@@ -20,16 +20,32 @@ debug_location(){
 
 script_exit(){ unset \
 		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
-		isntallLog radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
+		installLog radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
 		radiantBar bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step tail_pid \
 		radiant_OS pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled \
 		radiantBld radiantBsd ; }
 
+radiantDir="$HOME/.radiant"
+radiantBin="$radiantDir/bin"
+radiantCnf="$radiantDir/radiant.conf"
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
+debug_step="finding the latest release version"; minor_progress
+if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
+	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
+else
+	debug_step="*** jq or curl not installed, dependencies installation failed"; progress_banner
+	exit 1
+fi
+debug_location
+radiantTgz="v${radiantVer}".tar.gz
+radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
+radiantSrc="$PWD/radiant-node-$radiantVer"
+radiantBld="${radiantSrc}/build"
 radiantBsd=0
 wallet_disabled=0
 installLog="${radiantSrc}/install.log"
+
 touch "$installLog"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
@@ -201,22 +217,6 @@ echo "packages installed by this script: ${pkg_to_install[@]}"
 
 # end dependency installation script
 
-debug_step="curl-ing the release version"; minor_progress
-radiantDir="$HOME/.radiant"
-radiantBin="$radiantDir/bin"
-radiantCnf="$radiantDir/radiant.conf"
-if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
-	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
-else
-	debug_step="*** jq or curl not installed, dependencies installation failed"; progress_banner
-	exit 1
-fi
-debug_location
-radiantTgz="v${radiantVer}".tar.gz
-radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
-radiantSrc="$PWD/radiant-node-$radiantVer"
-radiantBld="${radiantSrc}/build"
-
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
 	mkdir "$radiantDir"
@@ -259,18 +259,18 @@ debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
-if [[ -f "$isntallLog" ]]; then
-	mv "$isntallLog" "${isntallLog}${EPOCHSECONDS}"
+if [[ -f "$installLog" ]]; then
+	mv "$installLog" "${installLog}${EPOCHSECONDS}"
 fi
-touch "$isntallLog"
-tail -f "$isntallLog" &
+touch "$installLog"
+tail -f "$installLog" &
 tail_pid=$!
 
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 debug_step="ninja package"; progress_banner
-cmake -GNinja .. -DBUILD_RADIANT_QT=OFF >>$isntallLog 2>&1
-ninja >>$isntallLog 2>&1
+cmake -GNinja .. -DBUILD_RADIANT_QT=OFF >>$installLog 2>&1
+ninja >>$installLog 2>&1
 debug_location
 
 debug_step="copying and stripping binaries into $radiantBin"; minor_progress
@@ -298,10 +298,10 @@ fi
 debug_step="binaries available in $radiantBin:"; minor_progress
 ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
-if [[ -s "$isntallLog" ]]; then
-	sed -n '/Options used to compile and link:/,/Making all in src/p' "$isntallLog"
+if [[ -s "$installLog" ]]; then
+	sed -n '/Options used to compile and link:/,/Making all in src/p' "$installLog"
 	if [[ "$?" != 0 ]]; then
-		tail -n 10 "$isntallLog"
+		tail -n 10 "$installLog"
 	fi
 fi
 if [[ "$wallet_disabled" == 1 ]]; then
