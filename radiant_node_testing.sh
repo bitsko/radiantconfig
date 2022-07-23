@@ -204,8 +204,13 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	unset -f script exit
 	exit 1
 fi
+
 if [[ "$build_zeromq" == 1 ]]; then
-	echo
+	git clone https://github.com/zeromq/libzmq
+	cd libzmq 
+	mkdir cmake-build && cd cmake-build
+	cmake .. && make
+	make test && make install && sudo ldconfig
 fi
 # end dependency installation script
 
