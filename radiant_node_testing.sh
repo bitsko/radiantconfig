@@ -60,7 +60,7 @@ if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo apt update
 	sudo apt -y upgrade
 	declare -a dpkg_pkg_array_=( build-essential libtool pkg-config  libcurl4-openssl-dev \
-		libncurses-dev autoconf autogen automake libevent-dev libminiupnpc-dev \
+		libncurses-dev autoconf autogen automake libevent-dev libminiupnpc-dev cmake \
 		bsdmainutils python3 libevent-dev libboost-system-dev libboost-filesystem-dev \
 		libboost-chrono-dev libboost-program-options-dev libboost-test-dev automake \
 		libboost-thread-dev libsqlite3-dev libqrencode-dev libdb-dev libdb++-dev \
@@ -86,7 +86,7 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo pacman -Syu
 	declare -a arch_pkg_array_=( boost boost-libs libevent libnatpmp binutils libtool m4 make \
 		automake autoconf zeromq gzip curl sqlite qrencode nano fakeroot gcc grep pkgconf \
-		sed miniupnpc jq wget bc vim pv xxd ncurses help2man ninja )
+		sed miniupnpc jq wget bc vim pv xxd ncurses help2man ninja cmake )
 	
   #  ninja-build )
 
