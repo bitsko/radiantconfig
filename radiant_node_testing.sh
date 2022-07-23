@@ -57,7 +57,6 @@ if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 			pkg_to_install+=( "$line" )
 		fi
        	done <<<$(printf '%s\n' "${pkg_array_[@]}")
-	unset dpkg_pkg_array_
 	if [[ -n "${pkg_to_install[*]}" ]]; then
                 sudo apt -y install ${pkg_to_install[*]}
                 debug_location
@@ -70,7 +69,7 @@ if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	fi
 elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo pacman -Syu
-	declare -a arch_pkg_array_=( boost boost-libs libevent libnatpmp binutils libtool m4 make \
+	declare -a pkg_array_=( boost boost-libs libevent libnatpmp binutils libtool m4 make \
 		automake autoconf zeromq gzip curl sqlite qrencode nano fakeroot gcc grep pkgconf \
 		sed miniupnpc jq wget bc vim pv xxd ncurses help2man ninja cmake )
 	while read -r line; do
@@ -79,8 +78,7 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 			debug_location
 		fi
 	done <<<$(printf '%s\n' "${pkg_array_[@]}")
-	unset arch_pkg_array_
-        if [[ -n "${pkg_to_install[*]}" ]]; then
+	if [[ -n "${pkg_to_install[*]}" ]]; then
        	        sudo pacman --noconfirm -Sy ${pkg_to_install[*]}
        		debug_location
        	fi
@@ -112,7 +110,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 	fi
 	while read -r line; do
                 if ! rpm -qi "$line" &> /dev/null; then
-                        rhat_to_install+=( "$line" )
+                        pkg_to_install+=( "$line" )
                         debug_location
                 fi
         done <<<$(printf '%s\n' "${pkg_array_[@]}")
@@ -222,7 +220,6 @@ fi
 radiantBin="$radiantDir/bin"
 radiantCnf="$radiantDir/radiant.conf"
 radiantTgz="v${radiantVer}".tar.gz
-radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
 radiantSrc="$PWD/radiant-node-$radiantVer"
 radiantBld="${radiantSrc}/build"
 
