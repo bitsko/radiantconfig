@@ -210,7 +210,11 @@ if [[ "$build_zeromq" == 1 ]]; then
 	cd libzmq 
 	mkdir cmake-build && cd cmake-build
 	cmake .. && make
-	make test && make install && sudo ldconfig
+	if [[ $(command -v sudo) ]]; then
+		sudo make install && sudo ldconfig
+	else
+		make install && sudo ldconfig
+	fi
 fi
 # end dependency installation script
 
