@@ -33,6 +33,9 @@ declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
+declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
+	manjaro-arm manjaro endeavouros arch )
+declare -a nowal_upnp_zmq_qt=( rocky centos amzn )
 debug_location
 cpu_type="$(uname -m)"
 uname_OS="$(uname -s)"
@@ -274,15 +277,17 @@ mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 
 debug_step="cmake -GNinja"; progress_banner
-if [[ "$wallet_disabled" == 1 && "$uname_OS" != NetBSD ]] && [[ "$novo_OS" != amzn ]] && \
-	[[ "$novo_OS" != rocky && "$novo_OS" != centos ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
-elif [[ "$novo_OS" == rocky || "$novo_OS" == centos ]] || [[ "$novo_OS" == amzn ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
-elif  [[ "uname_OS" == NetBSD ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
-else
+if [[ "${cmake_gninja_noqt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
+elif [[ "$uname_OS" == OpenBSD ]]; then
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+elif  [[ "uname_OS" == NetBSD ]]; then
+	CMAKE_C_COMPILER=gcc CMAKE_CXX_COMPILER=g++ cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+	# -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
+else
+	
 fi
 debug_step="ninja build"; progress_banner
 ninja 
