@@ -283,7 +283,7 @@ elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
 elif [[ "$uname_OS" == OpenBSD ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
-elif  [[ "uname_OS" == NetBSD ]]; then
+elif  [[ "$uname_OS" == NetBSD ]]; then
 	CMAKE_C_COMPILER=gcc CMAKE_CXX_COMPILER=g++ cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
 	# -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
 else
