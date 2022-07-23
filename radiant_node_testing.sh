@@ -274,8 +274,11 @@ mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 
 debug_step="cmake -GNinja"; progress_banner
-if [[ "$wallet_disabled" == 1 || "$uname_OS" != NetBSD ]]; then
+if [[ "$wallet_disabled" == 1 && "$uname_OS" != NetBSD ]] && [[ "$novo_OS" != amzn ]] && \
+	[[ "$novo_OS" != rocky && "$novo_OS" != centos ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+elif [[ "$novo_OS" == rocky || "$novo_OS" == centos ]] || [[ "$novo_OS" == amzn ]]; then
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
 elif  [[ "uname_OS" == NetBSD ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
 else
