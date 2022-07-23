@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-
+# script doesnt work yet
 # compile the latest version of radiant node
 
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
-echo "script broken"; exit 1
+echo "script broken"
+# ; exit 1
 progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; sleep 2; }
 minor_progress(){ echo "	***** $debug_step *****"; sleep 1; }
 keep_clean(){ if [[ "$frshDir" == 1 ]]; then rm -r "$radiantDir" 2>/dev/null; fi; }
