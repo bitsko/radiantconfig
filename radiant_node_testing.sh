@@ -268,7 +268,7 @@ debug_location
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
 # if [[ -f "$radiantSrc/log" ]]; then
-#	mv "$radiantSrc/log $radiantSrc/log$EPOCHSECONDS"
+#	mv "$radiantSrc"/log "$radiantSrc"/log"$EPOCHSECONDS"
 # fi
 # touch "$radiantSrc/log"
 
