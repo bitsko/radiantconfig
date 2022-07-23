@@ -186,7 +186,7 @@ else
 	unset -f script_exit
 	exit 1
 fi
-cmake_version=$(cmake -version | cut -d ' ' -f 3 | sed 's/\.//g' | cut -c -3)
+cmake_version=$(cmake -version | head -n 1 | cut -d ' ' -f 3 | sed 's/\.//g' | cut -c -3)
 if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	debug_step="CMake 3.13 or higher is required. You are running version $(cmake -version | cut -d ' ' -f 3)"; progress_banner
 	echo "aborting installation"
