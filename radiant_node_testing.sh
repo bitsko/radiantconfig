@@ -272,13 +272,12 @@ cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
-if [[ "uname_OS" == NetBSD ]]; then
-	export CMAKE_C_COMPILER=gcc
-	export CMAKE_CXX_COMPILER=g++
-fi
+
 debug_step="cmake -GNinja"; progress_banner
-if [[ "$wallet_disabled" == 1 ]]; then
+if [[ "$wallet_disabled" == 1 || "$uname_OS" != NetBSD ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+elif  [[ "uname_OS" == NetBSD ]]; then
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
 else
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
 fi
