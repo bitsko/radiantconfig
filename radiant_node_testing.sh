@@ -52,7 +52,7 @@ uname_OS="$(uname -s)"
 radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
 debug_step="find the operating system type"
 if [[ -z "$radiant_OS" ]]; then radiant_OS="$uname_OS"; fi
-if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies" | tee -a "$installLog: ; fi
+if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies" | tee -a "$installLog" ; fi
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
@@ -306,7 +306,7 @@ if [[ ! -f "$radiantCnf" ]]; then
 fi
 
 debug_step="binaries available in $radiantBin:"; minor_progress
-ls "$radiantBin"
+ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
 if [[ -s "$radiantSrc/log" ]]; then
 	sed -n '/Options used to compile and link:/,/Making all in src/p' "$radiantSrc/log"
@@ -315,7 +315,7 @@ if [[ -s "$radiantSrc/log" ]]; then
 	fi
 fi
 if [[ "$wallet_disabled" == 1 ]]; then
-	if [[ -n $(source /etc/os-release; echo "$PRETTY_NAME") ]]; then
+	if [[ -f $(source /etc/os-release ]]; then
 		radiant_OS=$(source /etc/os-release; echo "$PRETTY_NAME")
 	fi
 	debug_step="wallet build is presently disabled on $radiant_OS"; minor_progress
