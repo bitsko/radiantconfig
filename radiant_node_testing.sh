@@ -6,19 +6,19 @@
 echo "script broken"; exit 1
 progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; sleep 2; }
 minor_progress(){ echo "	***** $debug_step *****"; sleep 1; }
-keep_clean(){ if [[ "$frshDir" == 1 ]]; then rm -r "$radiantDir" "$radiantTgz" 2>/dev/null; fi; }
+keep_clean(){ if [[ "$frshDir" == 1 ]]; then rm -r "$radiantDir" 2>/dev/null; fi; }
 
 debug_location(){
 	if [[ "$?" != 0 ]]; then
 		echo $'\n\n'"$debug_step has failed!"$'\n\n'
 		keep_clean
-		if ps -p $tail_pid > /dev/null; then 
-			kill "$tail_pid"
-		fi
-		if [[ -s "$radiantSrc/log" ]]; then
-			tail -n 10 "$radiantSrc/log"
-			echo $'\n'"log available at $radiantSrc/log"$'\n'
-		fi
+#		if ps -p $tail_pid > /dev/null; then 
+#			kill "$tail_pid"
+#		fi
+#		if [[ -s "$radiantSrc/log" ]]; then
+#			tail -n 10 "$radiantSrc/log"
+#			echo $'\n'"log available at $radiantSrc/log"$'\n'
+#		fi
 		script_exit
 		exit 1
 	fi; }
@@ -266,39 +266,13 @@ debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
-if [[ -f "$radiantSrc/log" ]]; then
-	mv "$radiantSrc/log $radiantSrc/log$EPOCHSECONDS"
-fi
+# if [[ -f "$radiantSrc/log" ]]; then
+#	mv "$radiantSrc/log $radiantSrc/log$EPOCHSECONDS"
+# fi
 # touch "$radiantSrc/log"
 
-debug_step="running autogen.sh"; progress_banner
-if [[ "$radiant_OS" == OpenBSD ]]; then
-	export AUTOCONF_VERSION=2.71
-	export AUTOMAKE_VERSION=1.16
-	./autogen.sh >>$radiantSrc/log 2>&1
-else
-	./autogen.sh >>$radiantSrc/log 2>&1
-fi
-debug_location
 # tail -f log & 
 # tail_pid=$!
-
-# debug_step="running ./configure"; progress_banner
-# if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]] && \
-#	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-# elif [[ "${x86cpu_array[*]}" =~ "$cpu_type" ]] && \
-#	[[ ! "${redhat_array[*]}" =~ "$radiant_OS" && ! "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-# elif [[ "$radiant_OS" == fedora ]]; then 
-# elif [[ "$radiant_OS" == freebsd ]]; then
-#
-# elif [[ "$radiant_OS" == OpenBSD ]]; then 
-#
-# elif [[ "$radiant_OS" == NetBSD ]]; then
-#
-# elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-#
-# elif [[ "$radiant_OS" == amzn ]]; then
-# fi
 
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
