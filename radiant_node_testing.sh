@@ -144,8 +144,8 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
 			curl wget gmake python-3.9.13 sqlite3 nano zeromq openssl boost \
 			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 \
-			pv ninja help2man cmake ncurses )
-			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2
+			pv ninja help2man cmake )
+			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2 ncurses
 	elif [[ "$uname_OS" == NetBSD ]]; then
 		if [[ -z $(command -v pkgin) ]]; then
 			pkg_add pkgin
