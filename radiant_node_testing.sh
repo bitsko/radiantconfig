@@ -288,7 +288,7 @@ ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
 
 if [[ "$wallet_disabled" == 1 ]]; then
-	if [[ -f $(source /etc/os-release ]]; then
+	if [[ -f $(source /etc/os-release) ]]; then
 		radiant_OS=$(source /etc/os-release; echo "$PRETTY_NAME")
 	fi
 	debug_step="wallet build is presently disabled on $radiant_OS"; minor_progress
