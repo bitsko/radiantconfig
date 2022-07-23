@@ -213,7 +213,7 @@ if [[ "$build_zeromq" == 1 ]]; then
 	if [[ $(command -v sudo) ]]; then
 		sudo make install && sudo ldconfig
 	else
-		make install && sudo ldconfig
+		make install && ldconfig
 	fi
 fi
 # end dependency installation script
