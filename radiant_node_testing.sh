@@ -7,47 +7,24 @@ minor_progress(){ echo "	***** $debug_step *****" ; sleep 1; }
 debug_location(){
 	if [[ "$?" != 0 ]]; then
 		echo $'\n\n'"$debug_step has failed!"$'\n\n'
-		if ps -p $tail_pid > /dev/null; then
-			kill "$tail_pid"
-		fi
-		if [[ -s "$installLog" ]]; then
-			echo $'\n'"log available at $installLog"$'\n'
-		fi
 		script_exit
 		exit 1
 	fi; }
 
 script_exit(){ unset \
 		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
-		installLog radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
+		radiantBld radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
 		radiantBar bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step tail_pid \
 		radiant_OS pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled \
-		radiantBld radiantBsd ; }
+		radiantBsd ; }
 
-radiantDir="$HOME/.radiant"
-radiantBin="$radiantDir/bin"
-radiantCnf="$radiantDir/radiant.conf"
+
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
-debug_step="finding the latest release version"; echo "$debug_step"
-if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
-	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
-else
-	debug_step="*** jq or curl not installed, dependencies installation failed"
-	script_exit
-	unset script_exit
-	exit 1
-fi
-radiantTgz="v${radiantVer}".tar.gz
-radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
-radiantSrc="$PWD/radiant-node-$radiantVer"
-radiantBld="${radiantSrc}/build"
 radiantBsd=0
 wallet_disabled=0
-installLog="radiant-install.log"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
-
 debug_step="declare arrays with bash v4+"
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
 declare -a redhat_array=( fedora centos rocky amzn )
@@ -212,15 +189,6 @@ else
 fi
 # end dependency installation script
 
-if [[ -f "$installLog" ]]; then
-	mv "$installLog" "${installLog}${EPOCHSECONDS}"
-fi
-touch "$installLog"
-# echo "distribution dependencies: ${pkg_array_[@]}" >> "$installLog"
-echo "packages installed by this script: ${pkg_to_install[@]}" >> "$installLog"
-tail -f "$installLog" &
-tail_pid=$!
-
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
@@ -239,6 +207,23 @@ elif [[ -d "$radiantDir" ]]; then
 	debug_location
 	echo "existing .radiant folder backed up to: $HOME/radiant.$EPOCHSECONDS.backup"
 fi
+debug_step="finding the latest release version"; echo "$debug_step"
+if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
+	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
+	debug_location
+else
+	debug_step="*** jq or curl not installed, dependencies installation failed"
+	script_exit
+	unset script_exit
+	exit 1
+fi
+radiantDir="$HOME/.radiant"
+radiantBin="$radiantDir/bin"
+radiantCnf="$radiantDir/radiant.conf"
+radiantTgz="v${radiantVer}".tar.gz
+radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
+radiantSrc="$PWD/radiant-node-$radiantVer"
+radiantBld="${radiantSrc}/build"
 
 debug_step="wget $radiantTgz download"; progress_banner
 if [[ ! -f "$radiantTgz" ]]; then
@@ -267,8 +252,8 @@ cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 debug_step="ninja package"; progress_banner
-cmake -GNinja .. -DBUILD_RADIANT_QT=OFF >>$installLog 2>&1
-ninja >>$installLog 2>&1
+cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+ninja 
 debug_location
 
 debug_step="copying and stripping binaries into $radiantBin"; minor_progress
@@ -290,18 +275,13 @@ if [[ ! -f "$radiantCnf" ]]; then
 	"txindex=1"$'\n'\
 	| tr -d ' ' > "$radiantCnf"
 	debug_location
-	cat "$radiantCnf" | tee -a "$installLog"
+	cat "$radiantCnf"
 fi
 
 debug_step="binaries available in $radiantBin:"; minor_progress
 ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
-if [[ -s "$installLog" ]]; then
-	sed -n '/Options used to compile and link:/,/Making all in src/p' "$installLog"
-	if [[ "$?" != 0 ]]; then
-		tail -n 10 "$installLog"
-	fi
-fi
+
 if [[ "$wallet_disabled" == 1 ]]; then
 	if [[ -f $(source /etc/os-release ]]; then
 		radiant_OS=$(source /etc/os-release; echo "$PRETTY_NAME")
@@ -310,12 +290,10 @@ if [[ "$wallet_disabled" == 1 ]]; then
 	debug_step="please submit a pull request or comment on how to build the wallet"; minor_progress
 	debug_step="to the repo at: https://github.com/bitsko/radiantconfig"; minor_progress
 fi
-echo $'\n'"to use:" | tee -a "$installLog"
-echo "$radiantBin/radiantd --daemon" | tee -a "$installLog"
-echo "tail -f $radiantDir/debug.log" | tee -a "$installLog"
-echo "$radiantBin/radiant-cli --help" | tee -a "$installLog"
-if ps -p $tail_pid > /dev/null; then
-	kill "$tail_pid"
-fi
+echo $'\n'"to use:"
+echo "$radiantBin/radiantd --daemon" 
+echo "tail -f $radiantDir/debug.log" 
+echo "$radiantBin/radiant-cli --help"
+
 script_exit
 unset -f script_exit
