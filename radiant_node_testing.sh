@@ -115,6 +115,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git )
 		pip install pv
+		build_zeromq=1
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -202,6 +203,9 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	script_exit
 	unset -f script exit
 	exit 1
+fi
+if [[ "$build_zeromq" == 1 ]]; then
+	echo
 fi
 # end dependency installation script
 
