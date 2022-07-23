@@ -1,25 +1,24 @@
 #!/usr/bin/env bash
 # script doesnt work yet
 # compile the latest version of radiant node
-
+statusLog="${radiantSrc}/status.log"
+installLog="${radiantSrc}/log"
+status_logging=1
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
-echo "script broken"
-# ; exit 1
-progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; sleep 2; }
-minor_progress(){ echo "	***** $debug_step *****"; sleep 1; }
-keep_clean(){ if [[ "$frshDir" == 1 ]]; then rm -r "$radiantDir" 2>/dev/null; fi; }
 
+log_steps(){ if [[ "$status_logging" == 1 ]]; then echo "$debug_step" >> "$statusLog"; fi; }
+progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; log_steps; sleep 2; }
+minor_progress(){ echo "	***** $debug_step *****"; log_steps; sleep 1; }
 debug_location(){
 	if [[ "$?" != 0 ]]; then
-		echo $'\n\n'"$debug_step has failed!"$'\n\n'
-		keep_clean
-#		if ps -p $tail_pid > /dev/null; then 
-#			kill "$tail_pid"
-#		fi
-#		if [[ -s "$radiantSrc/log" ]]; then
+		echo $'\n\n'"$debug_step has failed!"$'\n\n' | tee -a "$statusLog"
+		if ps -p $tail_pid > /dev/null; then 
+			kill "$tail_pid"
+		fi
+		if [[ -s "$radiantSrc/log" ]]; then
 #			tail -n 10 "$radiantSrc/log"
-#			echo $'\n'"log available at $radiantSrc/log"$'\n'
-#		fi
+			echo $'\n'"log available at $installLog"$'\n'
+		fi
 		script_exit
 		exit 1
 	fi; }
@@ -38,7 +37,7 @@ compile_bdb53=0
 compile_boost=0
 wallet_disabled=0
 
-echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
+echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner 
 
 debug_step="declare arrays with bash v4+"
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
@@ -53,7 +52,7 @@ uname_OS="$(uname -s)"
 radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
 debug_step="find the operating system type"
 if [[ -z "$radiant_OS" ]]; then radiant_OS="$uname_OS"; fi
-if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies"; fi
+if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies" | tee -a "$installLog: ; fi
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
@@ -119,7 +118,8 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			help2man cmake ncurses curl )
         elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
 	                declare -a rhat_pkg_array_=( libtool make autoconf automake openssl-devel \
-                        libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel )
+                        libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
+			help2man ninja-build cmake ncurses curl )
 	                # miniupnpc-devel qrencode-devel zeromq-devel libdb-devel pv
 	else
 		echo "$uname_OS unsupported"
@@ -158,7 +158,8 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		# compile_boost=1
 		declare -a bsd__pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
 			curl wget gmake python-3.9.13 sqlite3 nano zeromq openssl boost \
-			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 pv )
+			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 \
+			pv ninja help2man cmake ncurses )
 			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2
 	elif [[ "$uname_OS" == NetBSD ]]; then
 		if [[ -z $(command -v pkgin) ]]; then
@@ -166,13 +167,15 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 		declare -a bsd__pkg_array_=( libtool libevent qrencode pkgconf miniupnpc \
 			jq curl wget gmake python39 sqlite3 boost nano zeromq openssl autoconf \
-			automake ca-certificates boost-libs readline vim llvm clang pv )
+			automake ca-certificates boost-libs readline vim llvm clang pv ninja \
+			help2man cmake ncurses )
 			# db5 llvm clang gcc9 R-BH-1.75.0.0
 	elif [[ "$radiant_OS" == freebsd ]]; then
 		pkg upgrade -y
 		declare -a bsd__pkg_array_=( boost-all libevent autotools libqrencode curl \
 			octave-forge-zeromq libnpupnp nano fakeroot pkgconf miniupnpc gzip \
-			jq wget db5 libressl gmake python3 sqlite3 binutils gcc clang vim pv )
+			jq wget db5 libressl gmake python3 sqlite3 binutils gcc clang vim pv \
+			ninja help2man cmake ncurses )
 	else
 		echo "$radiant_OS bsd distro not supported"
 	fi
