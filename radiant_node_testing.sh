@@ -31,10 +31,10 @@ declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
-declare -a nowal_upnp_zmq_qt=( rocky centos amzn )
-declare -a wallet_disabled_array=( rocky centos amzn OpenBSD NetBSD )
+declare -a nowal_upnp_zmq_qt=( rocky centos amzn rhel )
+declare -a wallet_disabled_array=( rocky centos amzn OpenBSD NetBSD rhel )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
-	manjaro-arm manjaro endeavouros arch dragonfly rhel )
+	manjaro-arm manjaro endeavouros arch dragonfly )
 debug_location
 
 cpu_type="$(uname -m)"
