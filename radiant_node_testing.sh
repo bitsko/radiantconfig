@@ -88,9 +88,6 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 	declare -a arch_pkg_array_=( boost boost-libs libevent libnatpmp binutils libtool m4 make \
 		automake autoconf zeromq gzip curl sqlite qrencode nano fakeroot gcc grep pkgconf \
 		sed miniupnpc jq wget bc vim pv xxd ncurses help2man ninja cmake )
-	
-  #  ninja-build )
-
 	while read -r line; do
         	if ! pacman -Qi "$line" &> /dev/null; then
 			arch_to_install+=( "$line" )
@@ -118,7 +115,8 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
         if [[ "$radiant_OS" == fedora  || "$radiant_OS" == amzn ]]; then
 		declare -a rhat_pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
-			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv )
+			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
+			help2man cmake ncurses curl )
         elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
 	                declare -a rhat_pkg_array_=( libtool make autoconf automake openssl-devel \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel )
