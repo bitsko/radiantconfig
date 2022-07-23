@@ -220,6 +220,7 @@ fi
 radiantBin="$radiantDir/bin"
 radiantCnf="$radiantDir/radiant.conf"
 radiantTgz="v${radiantVer}".tar.gz
+radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
 radiantSrc="$PWD/radiant-node-$radiantVer"
 radiantBld="${radiantSrc}/build"
 
