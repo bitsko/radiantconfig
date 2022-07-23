@@ -111,9 +111,9 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
                         libdb-devel libdb-cxx-devel qrencode-devel gzip jq wget bc vim sed grep \
                         help2man cmake ncurses curl openssl-devel boost-devel ninja-build )
 	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	                declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
+	         declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
-			help2man ninja-build cmake ncurses curl )
+			help2man ninja-build cmake )
 	else
 		echo "$uname_OS unsupported"
 		exit 1
