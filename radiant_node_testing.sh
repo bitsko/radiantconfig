@@ -193,6 +193,7 @@ else
 	unset -f script_exit
 	exit 1
 fi
+
 cmake_version=$(cmake -version | head -n 1 | cut -d ' ' -f 3 | sed 's/\.//g' | cut -c -3)
 if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	debug_step="CMake 3.13 or higher is required. You are running version $(cmake -version | cut -d ' ' -f 3)"; progress_banner
@@ -202,7 +203,6 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	exit 1
 fi
 # end dependency installation script
-
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
@@ -221,6 +221,7 @@ elif [[ -d "$radiantDir" ]]; then
 	debug_location
 	echo "existing .radiant folder backed up to: $HOME/radiant.$EPOCHSECONDS.backup"
 fi
+
 debug_step="finding the latest release version"; echo "$debug_step"
 if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
 	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
@@ -268,7 +269,6 @@ fi
 debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
-
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 
@@ -282,9 +282,8 @@ elif [[ "$uname_OS" == OpenBSD ]]; then
 elif  [[ "$uname_OS" == NetBSD ]]; then
 	CMAKE_C_COMPILER=gcc CMAKE_CXX_COMPILER=g++ cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
 	# -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
-else
-	
 fi
+
 debug_step="ninja build"; progress_banner
 ninja 
 debug_location
@@ -315,7 +314,7 @@ debug_step="binaries available in $radiantBin:"; minor_progress
 ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
 
-if [[ "$wallet_disabled" == 1 ]]; then
+if [[ "${wallet_disabled_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ -f $(source /etc/os-release) ]]; then
 		radiant_OS=$(source /etc/os-release; echo "$PRETTY_NAME")
 	fi
@@ -323,6 +322,7 @@ if [[ "$wallet_disabled" == 1 ]]; then
 	debug_step="please submit a pull request or comment on how to build the wallet"; minor_progress
 	debug_step="to the repo at: https://github.com/bitsko/radiantconfig"; minor_progress
 fi
+
 echo $'\n'"to use:"
 echo "$radiantBin/radiantd --daemon" 
 echo "tail -f $radiantDir/debug.log" 
