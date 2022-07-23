@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # compile the latest version of radiant node
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
 
@@ -10,18 +11,15 @@ debug_location(){
 		script_exit
 		exit 1
 	fi; }
-
 script_exit(){ unset \
 		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
-		radiantBld radiantTxt radiantSrc radiantBar radiant_OS radiantBsd archos_array deb_os_array \
-		armcpu_array x86cpu_array bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step \
-		pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled cmake_gninja_noqt \
-		nowal_upnp_zmq_qt ; }
-
+		radiantBld radiantTxt radiantSrc radiantBar radiant_OS archos_array deb_os_array debug_step \
+		armcpu_array x86cpu_array bsdpkg_array redhat_array cpu_type uname_OS radiantTxt \
+		pkg_array_ pkg_to_install progress_banner minor_progress cmake_gninja_noqt \
+		nowal_upnp_zmq_qt wallet_disabled_array; }
 
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
-radiantBsd=0
 wallet_disabled=0
 radiantDir="$HOME/.radiant"
 
@@ -33,10 +31,12 @@ declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
+declare -a nowal_upnp_zmq_qt=( rocky centos amzn )
+declare -a wallet_disabled_array=( rocky centos amzn OpenBSD NetBSD )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
 	manjaro-arm manjaro endeavouros arch )
-declare -a nowal_upnp_zmq_qt=( rocky centos amzn )
 debug_location
+
 cpu_type="$(uname -m)"
 uname_OS="$(uname -s)"
 radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
@@ -96,23 +96,24 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 	fi
 elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
-        sudo dnf update
-        if [[ "$radiant_OS" == fedora ]]; then
+       	if [[ -n $(command -v dnf) ]]; then
+		sudo dnf update
+        else
+		sudo yum update
+	fi
+	if [[ "$radiant_OS" == fedora ]]; then
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl )
         elif [[ "$radiant_OS" == amzn ]]; then
-		wallet_disabled=1
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake libevent-devel \
                         libdb-devel libdb-cxx-devel qrencode-devel gzip jq wget bc vim sed grep \
                         help2man cmake ncurses curl openssl-devel boost-devel ninja-build )
 	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	                wallet_disabled=1
-			declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
+	                declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake ncurses curl )
-	                # miniupnpc-devel qrencode-devel zeromq-devel libdb-devel pv
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -131,29 +132,24 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 		debug_location
         fi
-        if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
-                if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
-                        sudo dnf install -y arm-none-eabi-binutils
-                        debug_location
-                fi
-                if ! rpm -qi arm-none-eabi-gcc &> /dev/null; then
-                        sudo dnf install -y arm-none-eabi-gcc
-                        debug_location
-                fi
-        fi
+#        if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
+#                if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
+#                        sudo dnf install -y arm-none-eabi-binutils
+#                        debug_location
+#                fi
+#                if ! rpm -qi arm-none-eabi-gcc &> /dev/null; then
+#                        sudo dnf install -y arm-none-eabi-gcc
+#                        debug_location
+#                fi
+#        fi
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-	radiantBsd=1
 	if [[ "$uname_OS" == OpenBSD ]]; then
-		wallet_disabled=1
-		# compile_bdb53=1
-		# compile_boost=1
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
 			curl wget gmake python-3.9.13 sqlite3 nano zeromq openssl boost \
 			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 \
 			pv ninja help2man cmake )
 			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2 ncurses
 	elif [[ "$uname_OS" == NetBSD ]]; then
-		wallet_disabled=1
 		if [[ -z $(command -v pkgin) ]]; then
 			pkg_add pkgin
 		fi
