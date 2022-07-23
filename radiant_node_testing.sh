@@ -2,12 +2,11 @@
 # compile the latest version of radiant node
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
 
-log_steps(){ echo "$debug_step" >> "$installLog"; }
-progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n' >> "$installLog" sleep 2; }
-minor_progress(){ echo "	***** $debug_step *****" >> "$installLog" ; sleep 1; }
+progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; sleep 2; }
+minor_progress(){ echo "	***** $debug_step *****" ; sleep 1; }
 debug_location(){
 	if [[ "$?" != 0 ]]; then
-		echo $'\n\n'"$debug_step has failed!"$'\n\n' >> "$installLog"
+		echo $'\n\n'"$debug_step has failed!"$'\n\n'
 		if ps -p $tail_pid > /dev/null; then
 			kill "$tail_pid"
 		fi
@@ -39,22 +38,17 @@ else
 	unset script_exit
 	exit 1
 fi
-debug_location
 radiantTgz="v${radiantVer}".tar.gz
 radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
 radiantSrc="$PWD/radiant-node-$radiantVer"
 radiantBld="${radiantSrc}/build"
 radiantBsd=0
 wallet_disabled=0
-
-installLog="${radiantSrc}/install.log"
-touch "$installLog"
-tail -f "$installLog" &
-tail_pid=$!
+installLog="radiant-install.log"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 
-debug_step="declare arrays with bash v4+"; log_steps
+debug_step="declare arrays with bash v4+"
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
 declare -a redhat_array=( fedora centos rocky amzn )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
@@ -65,9 +59,9 @@ debug_location
 cpu_type="$(uname -m)"
 uname_OS="$(uname -s)"
 radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
-debug_step="find the operating system type"; log_steps
+debug_step="find the operating system type"
 if [[ -z "$radiant_OS" ]]; then radiant_OS="$uname_OS"; fi
-if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies" >> "$installLog" ; fi
+if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies"; fi
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
@@ -188,9 +182,9 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 			jq wget db5 libressl gmake python3 sqlite3 binutils gcc clang vim pv \
 			ninja help2man cmake ncurses )
 	else
-		echo "$radiant_OS bsd distro not supported" >> "$installLog"
+		echo "$radiant_OS bsd distro not supported"
 	fi
-	while read -r line; do 
+	while read -r line; do
 		if ! command -v "$line" >/dev/null; then
 			pkg_to_install+=( "$line" )
 		fi
@@ -209,17 +203,24 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 	fi
 elif [[ "$radiant_OS" == "Linux" ]]; then
-	echo "attempting to compile without checking dependencies" >> "$installLog"
+	echo "attempting to compile without checking dependencies"
 else
-	echo "$radiant_OS unsupported" >>"$installLog"
+	echo "$radiant_OS unsupported"
 	script_exit
 	unset -f script_exit
 	exit 1
 fi
-echo "distribution dependencies: ${pkg_array_[@]}" >> "$installLog"
-echo "packages installed by this script: ${pkg_to_install[@]}" >> "$installLog"
-
 # end dependency installation script
+
+if [[ -f "$installLog" ]]; then
+	mv "$installLog" "${installLog}${EPOCHSECONDS}"
+fi
+touch "$installLog"
+# echo "distribution dependencies: ${pkg_array_[@]}" >> "$installLog"
+echo "packages installed by this script: ${pkg_to_install[@]}" >> "$installLog"
+tail -f "$installLog" &
+tail_pid=$!
+
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
@@ -263,10 +264,6 @@ debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
-if [[ -f "$installLog" ]]; then
-	mv "$installLog" "${installLog}${EPOCHSECONDS}"
-fi
-
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 debug_step="ninja package"; progress_banner
@@ -293,7 +290,7 @@ if [[ ! -f "$radiantCnf" ]]; then
 	"txindex=1"$'\n'\
 	| tr -d ' ' > "$radiantCnf"
 	debug_location
-	cat "$radiantCnf" >> "$installLog"
+	cat "$radiantCnf" | tee -a "$installLog"
 fi
 
 debug_step="binaries available in $radiantBin:"; minor_progress
@@ -313,10 +310,10 @@ if [[ "$wallet_disabled" == 1 ]]; then
 	debug_step="please submit a pull request or comment on how to build the wallet"; minor_progress
 	debug_step="to the repo at: https://github.com/bitsko/radiantconfig"; minor_progress
 fi
-echo $'\n'"to use:" >> "$installLog"
-echo "$radiantBin/radiantd --daemon" >> "$installLog"
-echo "tail -f $radiantDir/debug.log" >> "$installLog"
-echo "$radiantBin/radiant-cli --help" >> "$installLog"
+echo $'\n'"to use:" | tee -a "$installLog"
+echo "$radiantBin/radiantd --daemon" | tee -a "$installLog"
+echo "tail -f $radiantDir/debug.log" | tee -a "$installLog"
+echo "$radiantBin/radiant-cli --help" | tee -a "$installLog"
 if ps -p $tail_pid > /dev/null; then
 	kill "$tail_pid"
 fi
