@@ -23,6 +23,7 @@ radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
 radiantBsd=0
 wallet_disabled=0
+radiantDir="$HOME/.radiant"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
@@ -217,7 +218,7 @@ else
 	unset script_exit
 	exit 1
 fi
-radiantDir="$HOME/.radiant"
+
 radiantBin="$radiantDir/bin"
 radiantCnf="$radiantDir/radiant.conf"
 radiantTgz="v${radiantVer}".tar.gz
