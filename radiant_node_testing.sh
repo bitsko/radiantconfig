@@ -25,8 +25,8 @@ radiantDir="$HOME/.radiant"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
-declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
-declare -a redhat_array=( fedora centos rocky amzn )
+declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
+declare -a redhat_array=( fedora centos rocky amzn rhel )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
@@ -34,7 +34,7 @@ declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
 declare -a nowal_upnp_zmq_qt=( rocky centos amzn )
 declare -a wallet_disabled_array=( rocky centos amzn OpenBSD NetBSD )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
-	manjaro-arm manjaro endeavouros arch )
+	manjaro-arm manjaro endeavouros arch dragonfly rhel )
 debug_location
 
 cpu_type="$(uname -m)"
@@ -101,7 +101,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
         else
 		sudo yum update
 	fi
-	if [[ "$radiant_OS" == fedora ]]; then
+	if [[ "$radiant_OS" == fedora || "$radiant_OS" == rhel ]]; then
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
@@ -158,7 +158,7 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 			automake ca-certificates boost-libs readline vim llvm clang pv ninja \
 			help2man cmake ncurses )
 			# db5 llvm clang gcc9 R-BH-1.75.0.0
-	elif [[ "$radiant_OS" == freebsd ]]; then
+	elif [[ "$radiant_OS" == freebsd || "$radiant_OS" == dragonfly ]]; then
 		pkg upgrade -y
 		declare -a pkg_array_=( boost-all libevent autotools libqrencode curl \
 			octave-forge-zeromq libnpupnp nano fakeroot pkgconf miniupnpc gzip \
