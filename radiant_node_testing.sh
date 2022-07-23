@@ -74,7 +74,7 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 		sed miniupnpc jq wget bc vim pv xxd ncurses help2man ninja cmake )
 	while read -r line; do
         	if ! pacman -Qi "$line" &> /dev/null; then
-			arch_to_install+=( "$line" )
+			pkg_to_install+=( "$line" )
 			debug_location
 		fi
 	done <<<$(printf '%s\n' "${pkg_array_[@]}")
