@@ -113,7 +113,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
-			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip )
+			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git )
 		pip install pv
 	else
 		echo "$uname_OS unsupported"
