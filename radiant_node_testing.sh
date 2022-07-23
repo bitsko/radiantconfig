@@ -100,11 +100,13 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl )
         elif [[ "$radiant_OS" == amzn ]]; then
+		wallet_disabled=1
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake libevent-devel \
                         libdb-devel libdb-cxx-devel qrencode-devel gzip jq wget bc vim sed grep \
                         help2man cmake ncurses curl openssl-devel boost-devel ninja-build )
 	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	                declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
+	                wallet_disabled=1
+			declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake ncurses curl )
 	                # miniupnpc-devel qrencode-devel zeromq-devel libdb-devel pv
@@ -139,6 +141,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	radiantBsd=1
 	if [[ "$uname_OS" == OpenBSD ]]; then
+		wallet_disabled=1
 		# compile_bdb53=1
 		# compile_boost=1
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
@@ -147,6 +150,7 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 			pv ninja help2man cmake )
 			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2 ncurses
 	elif [[ "$uname_OS" == NetBSD ]]; then
+		wallet_disabled=1
 		if [[ -z $(command -v pkgin) ]]; then
 			pkg_add pkgin
 		fi
@@ -269,7 +273,11 @@ cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 debug_step="cmake -GNinja"; progress_banner
-cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+if [[ "$wallet_disabled" == 1 ]]; then
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+else
+	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+fi
 debug_step="ninja build"; progress_banner
 ninja 
 debug_location
