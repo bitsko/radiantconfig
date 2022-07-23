@@ -1,22 +1,17 @@
 #!/usr/bin/env bash
-# script doesnt work yet
 # compile the latest version of radiant node
-statusLog="${radiantSrc}/status.log"
-installLog="${radiantSrc}/log"
-status_logging=1
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
 
-log_steps(){ if [[ "$status_logging" == 1 ]]; then echo "$debug_step" >> "$statusLog"; fi; }
+log_steps(){ echo "$debug_step" >> "$installLog"; }
 progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; log_steps; sleep 2; }
 minor_progress(){ echo "	***** $debug_step *****"; log_steps; sleep 1; }
 debug_location(){
 	if [[ "$?" != 0 ]]; then
-		echo $'\n\n'"$debug_step has failed!"$'\n\n' | tee -a "$statusLog"
-		if ps -p $tail_pid > /dev/null; then 
+		echo $'\n\n'"$debug_step has failed!"$'\n\n' | tee -a "$installLog"
+		if ps -p $tail_pid > /dev/null; then
 			kill "$tail_pid"
 		fi
-		if [[ -s "$radiantSrc/log" ]]; then
-#			tail -n 10 "$radiantSrc/log"
+		if [[ -s "$isntallLog" ]]; then
 			echo $'\n'"log available at $installLog"$'\n'
 		fi
 		script_exit
@@ -24,22 +19,22 @@ debug_location(){
 	fi; }
 
 script_exit(){ unset \
-		radiantUsr radiantRpc radiantCpu radiantAdr radiantDir radiantCnf radiantVer radiantTgz \
-		radiantTxt radiantSrc radiantNum archos_array deb_os_array armcpu_array x86cpu_array \
-		bsdpkg_array redhat_array cpu_type pkg_Err uname_OS radiantPrc debug_step frshDir \
-		radiant_OS radiantBar keep_clean bsd__pkg_array_ compile_bdb53 radiantTxt tail_pid \
-		progress_banner minor_progress compile_boost wallet_disabled radiantLog radiantGit; }
+		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
+		isntallLog radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
+		radiantBar bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step tail_pid \
+		radiant_OS pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled \
+		radiantBld radiantBsd ; }
 
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
 radiantBsd=0
-compile_bdb53=0
-compile_boost=0
 wallet_disabled=0
+installLog="${radiantSrc}/install.log"
+touch "$installLog"
 
-echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner 
+echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 
-debug_step="declare arrays with bash v4+"
+debug_step="declare arrays with bash v4+"; log_steps
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
 declare -a redhat_array=( fedora centos rocky amzn )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
@@ -50,7 +45,7 @@ debug_location
 cpu_type="$(uname -m)"
 uname_OS="$(uname -s)"
 radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
-debug_step="find the operating system type"
+debug_step="find the operating system type"; log_steps
 if [[ -z "$radiant_OS" ]]; then radiant_OS="$uname_OS"; fi
 if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies" | tee -a "$installLog" ; fi
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
@@ -59,7 +54,7 @@ debug_step="dependencies installation"; progress_banner
 if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo apt update
 	sudo apt -y upgrade
-	declare -a dpkg_pkg_array_=( build-essential libtool pkg-config  libcurl4-openssl-dev \
+	declare -a pkg_array_=( build-essential libtool pkg-config  libcurl4-openssl-dev \
 		libncurses-dev autoconf autogen automake libevent-dev libminiupnpc-dev cmake \
 		bsdmainutils python3 libevent-dev libboost-system-dev libboost-filesystem-dev \
 		libboost-chrono-dev libboost-program-options-dev libboost-test-dev automake \
@@ -67,14 +62,13 @@ if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 		libssl-dev miniupnpc bc curl jq wget libzmq3-dev xxd pv help2man ninja-build )
 	while read -r line; do
         	if ! dpkg -s "$line" &> /dev/null; then
-			dpkg_to_install+=( "$line" )
+			pkg_to_install+=( "$line" )
 		fi
-       	done <<<$(printf '%s\n' "${dpkg_pkg_array_[@]}")
+       	done <<<$(printf '%s\n' "${pkg_array_[@]}")
 	unset dpkg_pkg_array_
-	if [[ -n "${dpkg_to_install[*]}" ]]; then
-                sudo apt -y install ${dpkg_to_install[*]}
+	if [[ -n "${pkg_to_install[*]}" ]]; then
+                sudo apt -y install ${pkg_to_install[*]}
                 debug_location
-		unset dpkg_to_install
         fi
 	if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
 		if ! dpkg -s g++ &> /dev/null; then
@@ -92,12 +86,11 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 			arch_to_install+=( "$line" )
 			debug_location
 		fi
-	done <<<$(printf '%s\n' "${arch_pkg_array_[@]}")
+	done <<<$(printf '%s\n' "${pkg_array_[@]}")
 	unset arch_pkg_array_
-        if [[ -n "${arch_to_install[*]}" ]]; then
-       	        sudo pacman --noconfirm -Sy ${arch_to_install[*]}
+        if [[ -n "${pkg_to_install[*]}" ]]; then
+       	        sudo pacman --noconfirm -Sy ${pkg_to_install[*]}
        		debug_location
-                unset arch_to_install
        	fi
 	if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
 		if ! pacman -Qi arm-none-eabi-binutils &> /dev/null; then
@@ -112,12 +105,12 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
         sudo dnf update
         if [[ "$radiant_OS" == fedora  || "$radiant_OS" == amzn ]]; then
-		declare -a rhat_pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
+		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl )
         elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	                declare -a rhat_pkg_array_=( libtool make autoconf automake openssl-devel \
+	                declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake ncurses curl )
 	                # miniupnpc-devel qrencode-devel zeromq-devel libdb-devel pv
@@ -130,16 +123,14 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
                         rhat_to_install+=( "$line" )
                         debug_location
                 fi
-        done <<<$(printf '%s\n' "${rhat_pkg_array_[@]}")
-        unset rhat_pkg_array_
-        if [[ -n "${rhat_to_install[*]}" ]]; then
+        done <<<$(printf '%s\n' "${pkg_array_[@]}")
+        if [[ -n "${pkg_to_install[*]}" ]]; then
                	if [[ -n $(command -v dnf) ]]; then
-			sudo dnf install -y ${rhat_to_install[*]}
+			sudo dnf install -y ${pkg_to_install[*]}
                 else
-			sudo yum install -y ${rhat_to_install[*]}
+			sudo yum install -y ${pkg_to_install[*]}
 		fi
 		debug_location
-		unset rhat_to_install
         fi
         if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
                 if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
@@ -156,7 +147,7 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ "$uname_OS" == OpenBSD ]]; then
 		# compile_bdb53=1
 		# compile_boost=1
-		declare -a bsd__pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
+		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
 			curl wget gmake python-3.9.13 sqlite3 nano zeromq openssl boost \
 			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 \
 			pv ninja help2man cmake ncurses )
@@ -165,14 +156,14 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		if [[ -z $(command -v pkgin) ]]; then
 			pkg_add pkgin
 		fi
-		declare -a bsd__pkg_array_=( libtool libevent qrencode pkgconf miniupnpc \
+		declare -a pkg_array_=( libtool libevent qrencode pkgconf miniupnpc \
 			jq curl wget gmake python39 sqlite3 boost nano zeromq openssl autoconf \
 			automake ca-certificates boost-libs readline vim llvm clang pv ninja \
 			help2man cmake ncurses )
 			# db5 llvm clang gcc9 R-BH-1.75.0.0
 	elif [[ "$radiant_OS" == freebsd ]]; then
 		pkg upgrade -y
-		declare -a bsd__pkg_array_=( boost-all libevent autotools libqrencode curl \
+		declare -a pkg_array_=( boost-all libevent autotools libqrencode curl \
 			octave-forge-zeromq libnpupnp nano fakeroot pkgconf miniupnpc gzip \
 			jq wget db5 libressl gmake python3 sqlite3 binutils gcc clang vim pv \
 			ninja help2man cmake ncurses )
@@ -181,19 +172,18 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	fi
 	while read -r line; do 
 		if ! command -v "$line" >/dev/null; then
-			pkg_to_install_+=( "$line" )
+			pkg_to_install+=( "$line" )
 		fi
-	done <<<$(printf '%s\n' "${bsd__pkg_array_[@]}")
-	
-	if [[ -n "${pkg_to_install_[*]}" ]]; then
+	done <<<$(printf '%s\n' "${pkg_array_[@]}")
+	if [[ -n "${pkg_to_install[*]}" ]]; then
 		if [[ "$radiant_OS" == freebsd ]]; then
-			pkg install -y ${pkg_to_install_[*]}
+			pkg install -y ${pkg_to_install[*]}
 			debug_location
 		elif [[ "$uname_OS" == "OpenBSD" ]] || [[ "$uname_OS" == "NetBSD" ]]; then
 			if [[ -n $(command -v pkgin) ]]; then
-				pkgin install ${pkg_to_install_[*]}
+				pkgin install ${pkg_to_install[*]}
 			else
-				pkg_add ${pkg_to_install_[*]}
+				pkg_add ${pkg_to_install[*]}
 			fi
 			debug_location
 		fi
@@ -206,6 +196,9 @@ else
 	unset -f script_exit
 	exit 1
 fi
+echo "distribution dependencies: ${pkg_array_[@]}" 
+echo "packages installed by this script: ${pkg_to_install[@]}"
+
 # end dependency installation script
 
 debug_step="curl-ing the release version"; minor_progress
@@ -214,8 +207,8 @@ radiantBin="$radiantDir/bin"
 radiantCnf="$radiantDir/radiant.conf"
 if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
 	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
-else 
-	echo "*** jq not installed, dependencies installation failed"
+else
+	debug_step="*** jq or curl not installed, dependencies installation failed"; progress_banner
 	exit 1
 fi
 debug_location
@@ -223,13 +216,11 @@ radiantTgz="v${radiantVer}".tar.gz
 radiantGit="https://github.com/RadiantBlockchain/radiant-node/archive/refs/tags/$radiantTgz"
 radiantSrc="$PWD/radiant-node-$radiantVer"
 radiantBld="${radiantSrc}/build"
-frshDir=0
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
 	mkdir "$radiantDir"
 	debug_location
-	frshDir=1
 elif [[ -d "$radiantDir" ]]; then
 	debug_step="backing up existing radiant directory"; progress_banner
 	if [[ -f "$radiantDir/radiant.pid" ]]; then
@@ -253,7 +244,7 @@ fi
 debug_location
 
 debug_step="removing pre-existing source compile folder"; minor_progress
-if [[ -d "$radiantSrc" ]]; then 
+if [[ -d "$radiantSrc" ]]; then
 	rm -r "$radiantSrc"
 fi
 debug_location
@@ -268,19 +259,18 @@ debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
-# if [[ -f "$radiantSrc/log" ]]; then
-#	mv "$radiantSrc"/log "$radiantSrc"/log"$EPOCHSECONDS"
-# fi
-# touch "$radiantSrc/log"
-
-# tail -f log & 
-# tail_pid=$!
+if [[ -f "$isntallLog" ]]; then
+	mv "$isntallLog" "${isntallLog}${EPOCHSECONDS}"
+fi
+touch "$isntallLog"
+tail -f "$isntallLog" &
+tail_pid=$!
 
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 debug_step="ninja package"; progress_banner
-cmake -GNinja .. -DBUILD_RADIANT_QT=OFF
-ninja
+cmake -GNinja .. -DBUILD_RADIANT_QT=OFF >>$isntallLog 2>&1
+ninja >>$isntallLog 2>&1
 debug_location
 
 debug_step="copying and stripping binaries into $radiantBin"; minor_progress
@@ -308,10 +298,10 @@ fi
 debug_step="binaries available in $radiantBin:"; minor_progress
 ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
-if [[ -s "$radiantSrc/log" ]]; then
-	sed -n '/Options used to compile and link:/,/Making all in src/p' "$radiantSrc/log"
+if [[ -s "$isntallLog" ]]; then
+	sed -n '/Options used to compile and link:/,/Making all in src/p' "$isntallLog"
 	if [[ "$?" != 0 ]]; then
-		tail -n 10 "$radiantSrc/log"
+		tail -n 10 "$isntallLog"
 	fi
 fi
 if [[ "$wallet_disabled" == 1 ]]; then
@@ -326,8 +316,8 @@ echo $'\n'"to use:"
 echo "$radiantBin/radiantd --daemon"
 echo "tail -f $radiantDir/debug.log"
 echo "$radiantBin/radiant-cli --help"
-# if ps -p $tail_pid > /dev/null; then
-#	kill "$tail_pid"
-# fi
+if ps -p $tail_pid > /dev/null; then
+	kill "$tail_pid"
+fi
 script_exit
 unset -f script_exit
