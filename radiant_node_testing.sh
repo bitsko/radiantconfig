@@ -225,7 +225,7 @@ radiantBld="${radiantSrc}/build"
 
 debug_step="wget $radiantTgz download"; progress_banner
 if [[ ! -f "$radiantTgz" ]]; then
-	wget_version=$(wget --version | head -n 1 | cut -d ' ' -f 3)
+	wget_version=$(wget --version | head -n 1 | cut -d ' ' -f 3 | cut -c -4)
 	if (( $(echo "$wget_version >= 1.16" | bc -l) )); then
 		wget "${radiantGit}" -q --show-progress
 	else
