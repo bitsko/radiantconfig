@@ -264,8 +264,9 @@ cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
 
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
-debug_step="ninja package"; progress_banner
+debug_step="cmake -GNinja"; progress_banner
 cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+debug_step="ninja build"; progress_banner
 ninja 
 debug_location
 
