@@ -13,10 +13,10 @@ debug_location(){
 
 script_exit(){ unset \
 		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
-		radiantBld radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
-		radiantBar bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step tail_pid \
-		radiant_OS pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled \
-		radiantBsd ; }
+		radiantBld radiantTxt radiantSrc radiantBar radiant_OS radiantBsd archos_array deb_os_array \
+		armcpu_array x86cpu_array bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step \
+		pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled cmake_gninja_noqt \
+		nowal_upnp_zmq_qt ; }
 
 
 radiantTxt="***********************"
