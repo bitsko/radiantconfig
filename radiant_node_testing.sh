@@ -47,7 +47,7 @@ if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; c
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
-if [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
+if [[ "${suse___array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ "$radiant_OS" == opensuse-tumbleweed ]]; then
 	sudo zypper dup
 	declare -a pkg_array_=( boost-devel libevent-devel libminiupnpc-devel binutils fakeroot m4 \
