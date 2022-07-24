@@ -292,15 +292,14 @@ debug_step="cmake -GNinja"; progress_banner
 if [[ "${cmake_gninja_noqt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
 elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -D ENABLE_UPNP=OFF -D BUILD_BITCOIN_ZMQ=OFF
 elif [[ "$uname_OS" == OpenBSD ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
 elif  [[ "$uname_OS" == NetBSD ]]; then
 	export CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc
 	export CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/gcc
-	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -GNinja .. \
-	-DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF 
-	# -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
+	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -G Ninja .. \
+	-D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -D CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc -D CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/g++
 fi
 
 debug_step="ninja build"; progress_banner
