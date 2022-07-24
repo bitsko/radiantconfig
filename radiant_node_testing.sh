@@ -25,16 +25,17 @@ radiantDir="$HOME/.radiant"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
+declare -a suse___array=( opensuse-tumbleweed opensuse-leap )
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
 declare -a redhat_array=( fedora centos rocky amzn rhel )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
-declare -a archos_array=( manjaro-arm manjaro endeavouros arch )
+declare -a archos_array=( manjaro-arm manjaro endeavouros arch garuda )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
 declare -a nowal_upnp_zmq_qt=( rocky centos amzn rhel )
-declare -a wallet_disabled_array=( rocky centos amzn OpenBSD NetBSD rhel )
+declare -a wallet_disabled_array=( rocky centos amzn rhel )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
-	manjaro-arm manjaro endeavouros arch dragonfly )
+	manjaro-arm manjaro endeavouros arch dragonfly garuda opensuse-tumbleweed )
 debug_location
 
 cpu_type="$(uname -m)"
@@ -46,6 +47,25 @@ if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; c
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
+elif [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
+	if [[ "$novo_OS" == opensuse-tumbleweed ]]; then
+	sudo zypper dup
+	declare -a pkg_array_=( boost-devel libevent-devel libminiupnpc-devel binutils fakeroot m4 \
+		make automake autoconf zeromq-devel gzip curl sqlite3 qrencode-devel nano grep \
+		libboost_system-devel libboost_filesystem-devel libboost_chrono-devel pkgconf jq wget \
+		libboost_program_options-devel libboost_test-devel libboost_thread-devel bc vim clang \
+		pv libtool libopenssl-devel help2man ninja libopenssl-devel cmake )
+	fi
+	while read -r line; do
+               if ! which "$line" &>/dev/null; then
+			pkg_to_install+=( "$line" )
+			debug_location
+		fi
+	done <<<$(printf '%s\n' "${pkg_array_[@]}")
+	if [[ -n "${pkg_to_install[*]}" ]]; then
+       	        sudo zypper install -y ${pkg_to_install[*]}
+       		debug_location
+	fi
 if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo apt update
 	sudo apt -y upgrade
