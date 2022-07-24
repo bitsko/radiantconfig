@@ -114,7 +114,6 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git )
-		pip install pv
 		build_zeromq=1
 	else
 		echo "$uname_OS unsupported"
@@ -131,6 +130,9 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			sudo dnf install -y ${pkg_to_install[*]}
                 else
 			sudo yum install -y ${pkg_to_install[*]}
+		fi
+		if [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
+			pip install pv
 		fi
 		debug_location
         fi
