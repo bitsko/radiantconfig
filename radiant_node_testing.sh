@@ -48,7 +48,7 @@ debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radia
 
 debug_step="dependencies installation"; progress_banner
 if [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
-	if [[ "$novo_OS" == opensuse-tumbleweed ]]; then
+	if [[ "$radiant_OS" == opensuse-tumbleweed ]]; then
 	sudo zypper dup
 	declare -a pkg_array_=( boost-devel libevent-devel libminiupnpc-devel binutils fakeroot m4 \
 		make automake autoconf zeromq-devel gzip curl sqlite3 qrencode-devel nano grep \
