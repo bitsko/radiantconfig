@@ -25,7 +25,7 @@ radiantDir="$HOME/.radiant"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
-declare -a suse___array=( opensuse-tumbleweed opensuse-leap )
+declare -a suse___array=( opensuse-tumbleweed )
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
 declare -a redhat_array=( fedora centos rocky amzn rhel )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
