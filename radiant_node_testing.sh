@@ -297,7 +297,7 @@ elif [[ "$uname_OS" == OpenBSD ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
 elif  [[ "$uname_OS" == NetBSD ]]; then
 	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -GNinja .. \
-	-DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF =CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
+	-DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
 fi
 
 debug_step="ninja build"; progress_banner
