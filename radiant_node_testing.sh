@@ -157,7 +157,7 @@ elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 		declare -a pkg_array_=( libtool libevent qrencode pkgconf miniupnpc \
 			jq curl wget gmake python39 sqlite3 boost nano zeromq openssl autoconf \
 			automake ca-certificates boost-libs readline vim llvm clang pv ninja \
-			help2man cmake ncurses )
+			help2man cmake ncurses db5 )
 			# db5 llvm clang gcc9 R-BH-1.75.0.0
 	elif [[ "$radiant_OS" == freebsd || "$radiant_OS" == dragonfly ]]; then
 		pkg upgrade -y
@@ -293,10 +293,9 @@ elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
 elif [[ "$uname_OS" == OpenBSD ]]; then
 	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
 elif  [[ "$uname_OS" == NetBSD ]]; then
-	export CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc
-	export CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/gcc
 	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -G Ninja .. \
-	-D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -D CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc -D CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/g++
+	-D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -DCMAKE_C_COMPILER=clang
+	# -D CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc -D CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/g++
 fi
 
 debug_step="ninja build"; progress_banner
