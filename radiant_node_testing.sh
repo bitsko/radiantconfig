@@ -27,13 +27,13 @@ echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
 declare -a suse___array=( opensuse-tumbleweed )
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
-declare -a redhat_array=( fedora centos rocky amzn rhel )
+declare -a redhat_array=( fedora centos rocky amzn rhel scientific )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch garuda )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
 declare -a nowal_upnp_zmq_qt=( rocky centos amzn rhel )
-declare -a wallet_disabled_array=( rocky centos amzn rhel )
+declare -a wallet_disabled_array=( scientific )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
 	manjaro-arm manjaro endeavouros arch dragonfly garuda opensuse-tumbleweed )
 debug_location
@@ -126,7 +126,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl python39 )
-	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || \
+	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || [[ "$radiant_OS" == scientific ]] || \
 		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] ; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
@@ -310,12 +310,16 @@ if [[ "${cmake_gninja_noqt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
 elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -D ENABLE_UPNP=OFF -D BUILD_BITCOIN_ZMQ=OFF
+elif [[ "${wallet_disabled_array[*]}" =~ "$radiant_OS" ]]; then
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
 elif [[ "$uname_OS" == OpenBSD ]]; then
 	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
 elif  [[ "$uname_OS" == NetBSD ]]; then
 	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -G Ninja .. \
 	-D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -DCMAKE_C_COMPILER=clang
 	# -D CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc -D CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/g++
+else
+	echo "error: $novo_OS not in configuration array"
 fi
 
 debug_step="ninja build"; progress_banner
