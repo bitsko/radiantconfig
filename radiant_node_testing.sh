@@ -101,19 +101,16 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
         else
 		sudo yum update
 	fi
-	if [[ "$radiant_OS" == fedora || "$radiant_OS" == rhel ]]; then
+	if [[ "$radiant_OS" == fedora ]]; then
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl python39 )
-        elif [[ "$radiant_OS" == amzn ]]; then
-		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake libevent-devel \
-                        libdb-devel libdb-cxx-devel qrencode-devel gzip jq wget bc vim sed grep \
-                        help2man cmake ncurses curl openssl-devel boost-devel ninja-build python39 )
-	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
+	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || \
+		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] ; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
-			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git )
+			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
 		build_zeromq=1
 	else
 		echo "$uname_OS unsupported"
