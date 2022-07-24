@@ -47,7 +47,7 @@ if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; c
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
-elif [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
+if [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
 	if [[ "$novo_OS" == opensuse-tumbleweed ]]; then
 	sudo zypper dup
 	declare -a pkg_array_=( boost-devel libevent-devel libminiupnpc-devel binutils fakeroot m4 \
@@ -66,7 +66,7 @@ elif [[ "${suse___array[*]}" =~ "$novo_OS" ]]; then
        	        sudo zypper install -y ${pkg_to_install[*]}
        		debug_location
 	fi
-if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
+elif [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo apt update
 	sudo apt -y upgrade
 	declare -a pkg_array_=( build-essential libtool pkg-config  libcurl4-openssl-dev \
