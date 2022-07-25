@@ -134,9 +134,9 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 		build_zeromq=0
 	elif [[ "$radiant_OS" == scientific ]]; then
 		declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
-                        libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
-			help2man  python39 libdb-cxx libdb-cxx-devel python3-pip git patch )
-			# ninja-build cmake(2.8) 
+                        libevent-devel boost-devel gcc-c++ gzip wget bc vim sed grep libuuid-devel \
+			help2man  python39 libdb-cxx libdb-cxx-devel git patch )
+			# ninja-build cmake(2.8) jq 
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -159,7 +159,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 		debug_location
         fi
 	if [[ "$radiant_OS" == scientific ]]; then
-		pip3 install --user jq ninja cmake
+		echo
 	fi
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ "$uname_OS" == OpenBSD ]]; then
