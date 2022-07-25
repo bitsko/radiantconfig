@@ -27,7 +27,7 @@ echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
 declare -a suse___array=( opensuse-tumbleweed )
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
-declare -a redhat_array=( fedora centos rocky amzn rhel scientific )
+declare -a redhat_array=( fedora centos rocky amzn rhel )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch garuda )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
@@ -132,11 +132,6 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
 		build_zeromq=0
-	elif [[ "$radiant_OS" == scientific ]]; then
-		declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
-                        libevent-devel boost-devel gcc-c++ gzip wget bc vim sed grep libuuid-devel \
-			help2man  python39 libdb-cxx libdb-cxx-devel git patch )
-			# ninja-build cmake(2.8) jq 
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -158,9 +153,6 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 		debug_location
         fi
-	if [[ "$radiant_OS" == scientific ]]; then
-		echo
-	fi
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ "$uname_OS" == OpenBSD ]]; then
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
