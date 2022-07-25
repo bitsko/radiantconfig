@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# use at your own risk
+# wget https://raw.githubusercontent.com/bitsko/radiantconfig/main/radjskey.fn -q && source radjskey.fn && radjskey
+
+# to print more than 1 keypair at a time just add the amount of keys you want created
+# example:
+# $ radjskey 100
+
+radjskey(){
+
+radjs_keys="$1"
+[ -z "$1" ] && radjs_keys=1
+
+if [[ ! -f $(command -v npm) && ! -x $(command -v npm) ]]; then
+          echo "install npm"
+          return
+fi
+if ! npm list "@radiantblockchain/radjs" &>/dev/null; then 
+          echo -n "installing rad js..."
+          npm i --prefix "$(pwd)" "@radiantblockchain/radjs" --save &>/dev/null
+          echo -ne "\r"
+fi
+
+while [[ "$radjs_keys" -gt "0" ]]; do
+
+node << RADJSKEY 
+const rad = require('@radiantblockchain/radjs')
+const privateKey = rad.PrivateKey.fromRandom()
+const publicKey = rad.PublicKey.fromPrivateKey(privateKey)
+console.log(rad.Address.fromPublicKey(publicKey).toString(),privateKey.toString())
+RADJSKEY
+
+radjs_keys=$((radjs_keys - 1))
+done
+
+unset radjs_keys
+}
