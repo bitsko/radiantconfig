@@ -8,21 +8,29 @@
 
 radjskey(){
 
+# the number of keys is pos. parameter #1
 radjs_keys="$1"
+
+# if there is no pos. parameter given, make 1 keypair
 [ -z "$1" ] && radjs_keys=1
 
+# if npm is not an executable file then exit
 if [[ ! -f $(command -v npm) || ! -x $(command -v npm) ]]; then
           echo "install npm"
           return
 fi
+
+# if radiant js is not installed, install it
 if ! npm list "@radiantblockchain/radjs" &>/dev/null; then 
           echo -n "installing rad js..."
           npm i --prefix "$(pwd)" "@radiantblockchain/radjs" --save &>/dev/null
           echo -ne "\r"
 fi
 
+# loop to make x number of keys
 while [[ "$radjs_keys" -gt "0" ]]; do
 
+# bash heredoc of a node.js file to create keypairs
 node << RADJSKEY 
 const rad = require('@radiantblockchain/radjs')
 const privateKey = rad.PrivateKey.fromRandom()
@@ -30,8 +38,11 @@ const publicKey = rad.PublicKey.fromPrivateKey(privateKey)
 console.log(rad.Address.fromPublicKey(publicKey).toString(),privateKey.toString())
 RADJSKEY
 
+# reduce the count of keys to generate by 1
 radjs_keys=$((radjs_keys - 1))
+# end loop
 done
 
+# unset environment variable
 unset radjs_keys
 }
