@@ -11,7 +11,7 @@ radjskey(){
 radjs_keys="$1"
 [ -z "$1" ] && radjs_keys=1
 
-if [[ ! -f $(command -v npm) && ! -x $(command -v npm) ]]; then
+if [[ ! -f $(command -v npm) || ! -x $(command -v npm) ]]; then
           echo "install npm"
           return
 fi
