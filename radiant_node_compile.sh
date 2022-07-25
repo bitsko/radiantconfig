@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # compile the latest version of radiant node
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
 
@@ -10,40 +11,62 @@ debug_location(){
 		script_exit
 		exit 1
 	fi; }
-
 script_exit(){ unset \
 		radiantUsr radiantRpc radiantCpu radiantGit radiantDir radiantCnf radiantVer radiantTgz \
-		radiantBld radiantTxt radiantSrc archos_array deb_os_array armcpu_array x86cpu_array \
-		radiantBar bsdpkg_array redhat_array cpu_type uname_OS radiantTxt debug_step tail_pid \
-		radiant_OS pkg_array_ pkg_to_install progress_banner minor_progress wallet_disabled \
-		radiantBsd ; }
-
+		radiantBld radiantTxt radiantSrc radiantBar radiant_OS archos_array deb_os_array debug_step \
+		armcpu_array x86cpu_array bsdpkg_array redhat_array cpu_type uname_OS radiantTxt \
+		pkg_array_ pkg_to_install progress_banner minor_progress cmake_gninja_noqt \
+		nowal_upnp_zmq_qt wallet_disabled_array; }
 
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
-radiantBsd=0
 wallet_disabled=0
 radiantDir="$HOME/.radiant"
 
 echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
-declare -a bsdpkg_array=( freebsd OpenBSD NetBSD )
-declare -a redhat_array=( fedora centos rocky amzn )
+declare -a suse___array=( opensuse-tumbleweed )
+declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
+declare -a redhat_array=( fedora centos rocky amzn rhel scientific )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch garuda )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
 declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
+declare -a nowal_upnp_zmq_qt=( rocky centos amzn rhel )
+declare -a wallet_disabled_array=( scientific )
+declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
+	manjaro-arm manjaro endeavouros arch dragonfly garuda opensuse-tumbleweed )
 debug_location
+
 cpu_type="$(uname -m)"
 uname_OS="$(uname -s)"
-radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID";	fi; )
+radiant_OS=$(if [[ -f /etc/os-release ]]; then source /etc/os-release; echo "$ID"; fi; )
 debug_step="find the operating system type"
 if [[ -z "$radiant_OS" ]]; then radiant_OS="$uname_OS"; fi
 if [[ "$radiant_OS" == "Linux" ]]; then echo "Linux distribution type unknown; cannot check for dependencies"; fi
 debug_step="compiling for: $radiant_OS $cpu_type"; progress_banner; echo "$radiantBar"
 
 debug_step="dependencies installation"; progress_banner
-if [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
+if [[ "${suse___array[*]}" =~ "$radiant_OS" ]]; then
+	if [[ "$radiant_OS" == opensuse-tumbleweed ]]; then
+	sudo zypper dup
+	declare -a pkg_array_=( boost-devel libevent-devel libminiupnpc-devel binutils fakeroot m4 \
+		make automake autoconf zeromq-devel gzip curl sqlite3 qrencode-devel nano grep \
+		libboost_system-devel libboost_filesystem-devel libboost_chrono-devel pkgconf jq wget \
+		libboost_program_options-devel libboost_test-devel libboost_thread-devel bc vim clang \
+		pv libtool libopenssl-devel help2man ninja libopenssl-devel cmake )
+	fi
+	while read -r line; do
+               if ! which "$line" &>/dev/null; then
+			pkg_to_install+=( "$line" )
+			debug_location
+		fi
+	done <<<$(printf '%s\n' "${pkg_array_[@]}")
+	if [[ -n "${pkg_to_install[*]}" ]]; then
+       	        sudo zypper install -y ${pkg_to_install[*]}
+       		debug_location
+	fi
+elif [[ "${deb_os_array[*]}" =~ "$radiant_OS" ]]; then
 	sudo apt update
 	sudo apt -y upgrade
 	declare -a pkg_array_=( build-essential libtool pkg-config  libcurl4-openssl-dev \
@@ -93,23 +116,22 @@ elif [[ "${archos_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 	fi
 elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
-        sudo dnf update
-        if [[ "$radiant_OS" == fedora ]]; then
+       	if [[ -n $(command -v dnf) ]]; then
+		sudo dnf update
+        else
+		sudo yum update
+	fi
+	if [[ "$radiant_OS" == fedora ]]; then
 		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake openssl-devel \
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
-			help2man cmake ncurses curl )
-        elif [[ "$radiant_OS" == amzn ]]; then
-		wallet_disabled=1
-		declare -a pkg_array_=( gcc-c++ libtool make autoconf automake libevent-devel \
-                        libdb-devel libdb-cxx-devel qrencode-devel gzip jq wget bc vim sed grep \
-                        help2man cmake ncurses curl openssl-devel boost-devel ninja-build )
-	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
-	                wallet_disabled=1
-			declare -a pkg_array_=( libtool make autoconf automake openssl-devel \
+			help2man cmake ncurses curl python39 )
+	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || [[ "$radiant_OS" == scientific ]] || \
+		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] ; then
+	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
-			help2man ninja-build cmake ncurses curl )
-	                # miniupnpc-devel qrencode-devel zeromq-devel libdb-devel pv
+			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
+		build_zeromq=1
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -126,40 +148,38 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
                 else
 			sudo yum install -y ${pkg_to_install[*]}
 		fi
+		if [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]]; then
+			pip install pv
+		fi
 		debug_location
         fi
-        if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
-                if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
-                        sudo dnf install -y arm-none-eabi-binutils
-                        debug_location
-                fi
-                if ! rpm -qi arm-none-eabi-gcc &> /dev/null; then
-                        sudo dnf install -y arm-none-eabi-gcc
-                        debug_location
-                fi
-        fi
+#        if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
+#                if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
+#                        sudo dnf install -y arm-none-eabi-binutils
+#                        debug_location
+#                fi
+#                if ! rpm -qi arm-none-eabi-gcc &> /dev/null; then
+#                        sudo dnf install -y arm-none-eabi-gcc
+#                        debug_location
+#                fi
+#        fi
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
-	radiantBsd=1
 	if [[ "$uname_OS" == OpenBSD ]]; then
-		wallet_disabled=1
-		# compile_bdb53=1
-		# compile_boost=1
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
 			curl wget gmake python-3.9.13 sqlite3 nano zeromq openssl boost \
 			libtool-2.4.2p2 autoconf-2.71 automake-1.16.3 vim-8.2.4600-no_x11 \
 			pv ninja help2man cmake )
 			# llvm boost git g++-11.2.0p2 gcc-11.2.0p2 ncurses
 	elif [[ "$uname_OS" == NetBSD ]]; then
-		wallet_disabled=1
 		if [[ -z $(command -v pkgin) ]]; then
 			pkg_add pkgin
 		fi
 		declare -a pkg_array_=( libtool libevent qrencode pkgconf miniupnpc \
 			jq curl wget gmake python39 sqlite3 boost nano zeromq openssl autoconf \
 			automake ca-certificates boost-libs readline vim llvm clang pv ninja \
-			help2man cmake ncurses )
+			help2man cmake ncurses db5 )
 			# db5 llvm clang gcc9 R-BH-1.75.0.0
-	elif [[ "$radiant_OS" == freebsd ]]; then
+	elif [[ "$radiant_OS" == freebsd || "$radiant_OS" == dragonfly ]]; then
 		pkg upgrade -y
 		declare -a pkg_array_=( boost-all libevent autotools libqrencode curl \
 			octave-forge-zeromq libnpupnp nano fakeroot pkgconf miniupnpc gzip \
@@ -194,6 +214,7 @@ else
 	unset -f script_exit
 	exit 1
 fi
+
 cmake_version=$(cmake -version | head -n 1 | cut -d ' ' -f 3 | sed 's/\.//g' | cut -c -3)
 if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	debug_step="CMake 3.13 or higher is required. You are running version $(cmake -version | cut -d ' ' -f 3)"; progress_banner
@@ -202,8 +223,19 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	unset -f script exit
 	exit 1
 fi
-# end dependency installation script
 
+if [[ "$build_zeromq" == 1 ]]; then
+	git clone https://github.com/zeromq/libzmq
+	cd libzmq 
+	mkdir cmake-build && cd cmake-build
+	cmake .. && make
+	if [[ $(command -v sudo) ]]; then
+		sudo make install && sudo ldconfig
+	else
+		make install && ldconfig
+	fi
+fi
+# end dependency installation script
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
 if [[ ! -d "$radiantDir" ]]; then
@@ -222,6 +254,7 @@ elif [[ -d "$radiantDir" ]]; then
 	debug_location
 	echo "existing .radiant folder backed up to: $HOME/radiant.$EPOCHSECONDS.backup"
 fi
+
 debug_step="finding the latest release version"; echo "$debug_step"
 if [[ -n $(command -v jq) && -n $(command -v curl) ]]; then
 	radiantVer="$(curl -s https://api.github.com/repos/RadiantBlockchain/radiant-node/releases/latest |jq .tag_name | sed 's/"//g;s/v//g')"
@@ -269,21 +302,26 @@ fi
 debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
-
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 
 debug_step="cmake -GNinja"; progress_banner
-if [[ "$wallet_disabled" == 1 && "$uname_OS" != NetBSD ]] && [[ "$novo_OS" != amzn ]] && \
-	[[ "$novo_OS" != rocky && "$novo_OS" != centos ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF
-elif [[ "$novo_OS" == rocky || "$novo_OS" == centos ]] || [[ "$novo_OS" == amzn ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -DENABLE_UPNP=OFF -DBUILD_BITCOIN_ZMQ=OFF
-elif  [[ "uname_OS" == NetBSD ]]; then
-	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF -DBUILD_BITCOIN_WALLET=OFF -CMAKE_C_COMPILER=gcc -CMAKE_CXX_COMPILER=g++
-else
+if [[ "${cmake_gninja_noqt[*]}" =~ "$radiant_OS" ]]; then
 	cmake -GNinja .. -DBUILD_RADIANT_QT=OFF 
+elif [[ "${nowal_upnp_zmq_qt[*]}" =~ "$radiant_OS" ]]; then
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -D ENABLE_UPNP=OFF -D BUILD_BITCOIN_ZMQ=OFF
+elif [[ "${wallet_disabled_array[*]}" =~ "$radiant_OS" ]]; then
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
+elif [[ "$uname_OS" == OpenBSD ]]; then
+	cmake -G Ninja .. -D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF
+elif  [[ "$uname_OS" == NetBSD ]]; then
+	CC=/usr/pkg/gcc9/bin/gcc CXX=/usr/pkg/gcc9/bin/g++-4.2 cmake -G Ninja .. \
+	-D BUILD_RADIANT_QT=OFF -D BUILD_BITCOIN_WALLET=OFF -DCMAKE_C_COMPILER=clang
+	# -D CMAKE_C_COMPILER=/usr/pkg/gcc9/bin/gcc -D CMAKE_CXX_COMPILER=/usr/pkg/gcc9/bin/g++
+else
+	echo "error: $novo_OS not in configuration array"
 fi
+
 debug_step="ninja build"; progress_banner
 ninja 
 debug_location
@@ -314,7 +352,7 @@ debug_step="binaries available in $radiantBin:"; minor_progress
 ls -hal "$radiantBin"/radiant{-cli,-tx,d}
 debug_location
 
-if [[ "$wallet_disabled" == 1 ]]; then
+if [[ "${wallet_disabled_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ -f $(source /etc/os-release) ]]; then
 		radiant_OS=$(source /etc/os-release; echo "$PRETTY_NAME")
 	fi
@@ -322,6 +360,7 @@ if [[ "$wallet_disabled" == 1 ]]; then
 	debug_step="please submit a pull request or comment on how to build the wallet"; minor_progress
 	debug_step="to the repo at: https://github.com/bitsko/radiantconfig"; minor_progress
 fi
+
 echo $'\n'"to use:"
 echo "$radiantBin/radiantd --daemon" 
 echo "tail -f $radiantDir/debug.log" 
