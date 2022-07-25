@@ -126,12 +126,17 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			libevent-devel boost-devel libdb-devel libdb-cxx-devel miniupnpc-devel \
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl python39 )
-	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || [[ "$radiant_OS" == scientific ]] || \
+	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || \
 		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] ; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
-		build_zeromq=1
+		build_zeromq=0
+	elif [[ "$radiant_OS" == scientific ]]; then
+		declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
+                        libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
+			help2man  python39 libdb-cxx libdb-cxx-devel python3-pip git patch )
+			# ninja-build cmake(2.8) 
 	else
 		echo "$uname_OS unsupported"
 		exit 1
@@ -153,16 +158,9 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 		fi
 		debug_location
         fi
-#        if [[ "${armcpu_array[*]}" =~ "$cpu_type" ]]; then
-#                if ! rpm -qi arm-none-eabi-binutils &> /dev/null; then
-#                        sudo dnf install -y arm-none-eabi-binutils
-#                        debug_location
-#                fi
-#                if ! rpm -qi arm-none-eabi-gcc &> /dev/null; then
-#                        sudo dnf install -y arm-none-eabi-gcc
-#                        debug_location
-#                fi
-#        fi
+	if [[ "$radiant_OS" == scientific ]]; then
+		pip3 install --user jq ninja cmake
+	fi
 elif [[ "${bsdpkg_array[*]}" =~ "$radiant_OS" ]]; then
 	if [[ "$uname_OS" == OpenBSD ]]; then
 		declare -a pkg_array_=( libevent libqrencode pkgconf miniupnpc jq \
