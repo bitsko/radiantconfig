@@ -14,7 +14,7 @@ radjs_keys="$1"
 # if there is no pos. parameter given, make 1 keypair
 [ -z "$1" ] && radjs_keys=1
 
-# if npm is not an executable file then exit
+# if npm is not a file, or isnt executable, then exit
 if [[ ! -f $(command -v npm) || ! -x $(command -v npm) ]]; then
           echo "install npm"
           return
@@ -43,6 +43,5 @@ radjs_keys=$((radjs_keys - 1))
 # end loop
 done
 
-# unset environment variable
 unset radjs_keys
 }
