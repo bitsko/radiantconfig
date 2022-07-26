@@ -18,6 +18,9 @@ script_exit(){ unset \
 		pkg_array_ pkg_to_install progress_banner minor_progress cmake_gninja_noqt \
 		nowal_upnp_zmq_qt wallet_disabled_array; }
 
+compile_upnpc=0
+compile_zeromq=0
+
 radiantTxt="***********************"
 radiantBar="$radiantTxt $radiantTxt $radiantTxt"
 wallet_disabled=0
@@ -27,7 +30,7 @@ echo "$radiantBar"; debug_step="radiant node compile script"; progress_banner
 debug_step="declare arrays with bash v4+"
 declare -a suse___array=( opensuse-tumbleweed )
 declare -a bsdpkg_array=( freebsd OpenBSD NetBSD dragonfly )
-declare -a redhat_array=( fedora centos rocky amzn rhel )
+declare -a redhat_array=( fedora centos rocky amzn rhel almalinux )
 declare -a deb_os_array=( debian ubuntu raspbian linuxmint pop )
 declare -a archos_array=( manjaro-arm manjaro endeavouros arch garuda )
 declare -a armcpu_array=( aarch64 aarch64_be armv8b armv8l armv7l )
@@ -35,7 +38,7 @@ declare -a x86cpu_array=( i686 x86_64 i386 ) # amd64
 declare -a nowal_upnp_zmq_qt=( rocky centos amzn rhel )
 declare -a wallet_disabled_array=( empty )
 declare -a cmake_gninja_noqt=( freebsd fedora debian ubuntu raspbian linuxmint pop \
-	manjaro-arm manjaro endeavouros arch dragonfly garuda opensuse-tumbleweed )
+	manjaro-arm manjaro endeavouros arch dragonfly garuda opensuse-tumbleweed almalinux )
 debug_location
 
 cpu_type="$(uname -m)"
@@ -214,6 +217,13 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	exit 1
 fi
 
+if [[ "$compile_upnpc" == 1 ]]; then 
+	wget https://github.com/miniupnp/miniupnp/archive/refs/tags/miniupnpc_2_1.tar.gz
+	tar -zxvf miniupnpc_2_1.tar.gz
+	cd miniupnp-miniupnpc_2_1/miniupnpc
+	make
+	sudo make install
+fi
 if [[ "$build_zeromq" == 1 ]]; then
 	git clone https://github.com/zeromq/libzmq
 	cd libzmq 
