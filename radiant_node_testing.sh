@@ -3,6 +3,8 @@
 # compile the latest version of radiant node
 # wget -N https://raw.githubusercontent.com/bitsko/radiantconfig/main/radiant_node_compile.sh && chmod +x radiant_node_compile.sh && ./radiant_node_compile.sh
 
+# tested on the most recent / up to date versions of the distributions listed in the arrays
+# OpenBSD / NetBSD not working, dragonfly not tested 
 progress_banner(){ echo $'\n\n'"${radiantTxt} ${debug_step} ${radiantTxt}"$'\n\n'; sleep 2; }
 minor_progress(){ echo "	***** $debug_step *****" ; sleep 1; }
 debug_location(){
