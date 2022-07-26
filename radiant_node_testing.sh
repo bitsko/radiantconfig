@@ -130,7 +130,7 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 			qrencode-devel gzip jq wget bc vim sed grep zeromq-devel pv ninja-build \
 			help2man cmake ncurses curl python39 )
 	elif [[ "$radiant_OS" == centos || "$radiant_OS" == rocky ]] || \
-		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] ; then
+		[[ "$radiant_OS" == amzn || "$radiant_OS" == rhel ]] || [[ "$radiant_OS" == almalinux ]]; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
