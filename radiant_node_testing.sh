@@ -134,10 +134,13 @@ elif [[ "${redhat_array[*]}" =~ "$radiant_OS" ]]; then
 	        declare -a pkg_array_=( libtool make autoconf automake openssl-devel ncurses curl \
                         libevent-devel boost-devel gcc-c++ gzip jq wget bc vim sed grep libuuid-devel \
 			help2man ninja-build cmake python39 libdb-cxx libdb-cxx-devel pip git patch )
-		build_zeromq=0
 	else
 		echo "$uname_OS unsupported"
 		exit 1
+	fi
+	if [[ "$radiant_OS" == almalinux ]]; then
+		compile_zeromq=1
+		compile_upnpc=1
 	fi
 	while read -r line; do
                 if ! rpm -qi "$line" &> /dev/null; then
