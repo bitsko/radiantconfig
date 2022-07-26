@@ -217,24 +217,6 @@ if (( $(echo "$cmake_version < 313" | bc -l) )); then
 	exit 1
 fi
 
-if [[ "$compile_upnpc" == 1 ]]; then 
-	wget https://github.com/miniupnp/miniupnp/archive/refs/tags/miniupnpc_2_1.tar.gz
-	tar -zxvf miniupnpc_2_1.tar.gz
-	cd miniupnp-miniupnpc_2_1/miniupnpc
-	make
-	sudo make install
-fi
-if [[ "$build_zeromq" == 1 ]]; then
-	git clone https://github.com/zeromq/libzmq
-	cd libzmq 
-	mkdir cmake-build && cd cmake-build
-	cmake .. && make
-	if [[ $(command -v sudo) ]]; then
-		sudo make install && sudo ldconfig
-	else
-		make install && ldconfig
-	fi
-fi
 # end dependency installation script
 
 debug_step="making directories, backing up .radiant folder if present"; minor_progress
@@ -302,6 +284,37 @@ fi
 debug_location
 
 cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
+
+if [[ "$compile_upnpc" == 1 ]]; then 
+	wget https://github.com/miniupnp/miniupnp/archive/refs/tags/miniupnpc_2_1.tar.gz
+	tar -zxvf miniupnpc_2_1.tar.gz
+	cd miniupnp-miniupnpc_2_1/miniupnpc
+	make
+	sudo make install
+	cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
+fi
+
+# compile zeromq
+if [[ "$compile_zeromq" == 1 ]]; then
+	if [[ $(command -v git) ]]; then
+		git clone https://github.com/zeromq/libzmq
+		cd libzmq 
+		mkdir cmake-build && cd cmake-build
+		cmake .. && make
+		if [[ $(command -v sudo) ]]; then
+			sudo make install && sudo ldconfig
+		else
+			make install && ldconfig
+		fi
+	else
+		echo "must have git installed"
+		script_exit
+		unset script_exit
+		exit 1
+	fi
+	cd "$radiantSrc" || echo "unable to cd to $radiantSrc"
+fi
+
 mkdir -p "$radiantBld"
 cd "$radiantBld" || echo "cant cd to $radiantBld"
 
